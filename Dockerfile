@@ -4,9 +4,6 @@ FROM python:3.9-slim
 # Set the working directory
 WORKDIR /app
 
-# Update pip to the latest version
-RUN pip install --upgrade pip
-
 # Install necessary packages
 RUN apt-get update && apt-get install -y \
     ffmpeg \
@@ -38,10 +35,8 @@ COPY . .
 # Expose a port for health checks (if needed)
 EXPOSE 8080
 
-# Set environment variables (these should be configured via Koyeb or passed during deployment)
-ENV API_ID=xxx
-ENV API_HASH=xxx
-ENV BOT_TOKEN=aa:xx
+# Healthcheck to ensure the bot is running
+HEALTHCHECK CMD pgrep -f "python bot.py" || exit 1
 
 # Run the bot script
-ENTRYPOINT ["python", "bot.py"]
+CMD ["python", "bot.py"]
