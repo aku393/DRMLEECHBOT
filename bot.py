@@ -19,13 +19,18 @@ api_id = os.getenv('API_ID')
 api_hash = os.getenv('API_HASH')
 bot_token = os.getenv('BOT_TOKEN')
 
+# Check for missing environment variables
 if not api_id or not api_hash or not bot_token:
     logger.error("Missing environment variables. Please check your .env file.")
     exit(1)
 
 print("Starting client...")
-client = TelegramClient('bot', api_id, api_hash).start(bot_token=bot_token)
-logger.info("Client started successfully.")
+try:
+    client = TelegramClient('bot', api_id, api_hash).start(bot_token=bot_token)
+    logger.info("Client started successfully.")
+except Exception as e:
+    logger.error(f"Failed to start client: {str(e)}")
+    exit(1)
 
 @client.on(events.NewMessage(pattern=r'^/leech (.+)'))
 async def leech(event):
