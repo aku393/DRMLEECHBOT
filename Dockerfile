@@ -1,46 +1,30 @@
-# Use a lightweight Python image
-FROM python:3.9-slim
+FROM python:3.10-slim
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt  # Ensure this line exists
-
-# Set the working directory
+# Set working directory
 WORKDIR /app
-
-# Install necessary packages
-RUN apt-get update && apt-get install -y \
-    ffmpeg \
-    wget \
-    tar \
-    unzip \
-    && apt-get clean
-
-# Download N_m3u8DL-RE
-RUN wget https://github.com/nilaoda/N_m3u8DL-RE/releases/download/v0.3.0-beta/N_m3u8DL-RE_v0.3.0-beta_linux-x64_20241203.tar.gz \
-    && tar -xvf N_m3u8DL-RE_v0.3.0-beta_linux-x64_20241203.tar.gz \
-    && chmod +x N_m3u8DL-RE \
-    && mv N_m3u8DL-RE /usr/local/bin/ \
-    && rm N_m3u8DL-RE_v0.3.0-beta_linux-x64_20241203.tar.gz
-
-# Download Bento4 for mp4decrypt
-RUN wget https://www.bok.net/Bento4/binaries/Bento4-SDK-1-6-0-641.x86_64-unknown-linux.zip \
-    && unzip Bento4-SDK-1-6-0-641.x86_64-unknown-linux.zip \
-    && mv Bento4-SDK-1-6-0-641.x86_64-unknown-linux/bin/mp4decrypt /usr/local/bin/ \
-    && rm -rf Bento4-SDK-1-6-0-641.x86_64-unknown-linux.zip
 
 # Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy bot script and other necessary files
+# Copy the bot code into the container
 COPY . .
 
-# Expose a port for health checks (if needed)
+# Install system dependencies for ffmpeg and DRM tools
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ensure required tools are available
+RUN wget -q https://github.com/nilaoda/N_m3u8DL-RE/releases/latest/download/N_m3u8DL-RE && chmod +x N_m3u8DL-RE
+RUN wget -q https://zebulon.bok.net/Bento4/binaries/Bento4-SDK-1-6-0-640.x86_64-unknown-linux.tar.gz && tar -xzf Bento4-SDK-1-6-0-640.x86_64-unknown-linux.tar.gz && mv Bento4-SDK-1-6-0-640.x86_64-unknown-linux/bin/mp4decrypt /usr/local/bin/
+
+# Set execution permissions
+RUN chmod +x /usr/local/bin/mp4decrypt
+
+# Expose port (if running a web server for Render, e.g., FastAPI)
 EXPOSE 8080
 
-# Healthcheck to ensure the bot is running
-HEALTHCHECK CMD pgrep -f "python bot.py" || exit 1
-
-# Run the bot script
+# Start the bot
 CMD ["python", "bot.py"]
