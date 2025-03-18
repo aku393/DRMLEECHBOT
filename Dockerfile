@@ -1,4 +1,4 @@
-# Use a slim Python image for better compatibility
+# Use a lightweight Python image
 FROM python:3.9-slim
 
 # Set the working directory
@@ -22,23 +22,23 @@ RUN wget https://github.com/nilaoda/N_m3u8DL-RE/releases/download/v0.3.0-beta/N_
     && mv N_m3u8DL-RE /usr/local/bin/ \
     && rm N_m3u8DL-RE_v0.3.0-beta_linux-x64_20241203.tar.gz
 
-# Download and set up Bento4 (for mp4decrypt)
+# Download Bento4 for mp4decrypt
 RUN wget https://www.bok.net/Bento4/binaries/Bento4-SDK-1-6-0-641.x86_64-unknown-linux.zip \
     && unzip Bento4-SDK-1-6-0-641.x86_64-unknown-linux.zip \
     && mv Bento4-SDK-1-6-0-641.x86_64-unknown-linux/bin/mp4decrypt /usr/local/bin/ \
     && rm -rf Bento4-SDK-1-6-0-641.x86_64-unknown-linux.zip
 
-# Copy the requirements file and install Python dependencies
+# Copy requirements and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the bot script and other necessary files
+# Copy bot script and other necessary files
 COPY . .
 
-# Expose a default port (if your bot needs to listen on a specific port)
+# Expose a port for health checks (if needed)
 EXPOSE 8080
 
-# Set environment variables for API credentials (replace with actual values or pass during deployment)
+# Set environment variables (these should be configured via Koyeb or passed during deployment)
 ENV API_ID=xxx
 ENV API_HASH=xxx
 ENV BOT_TOKEN=aa:xx
